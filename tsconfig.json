@@ -14,6 +14,9 @@
     },
     {
       "path": "./apps/cli-mmo-client"
+    },
+    {
+      "path": "./apps/cli-mmo-web"
     }
   ]
 }
