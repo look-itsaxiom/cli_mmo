@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { config } from './config';
-import { gameRouter } from './routes';
+import { buildRoutes } from './routes';
 import { TickWorker } from './services/tick-worker';
 
 const app = express();
@@ -15,7 +15,7 @@ app.use(morgan('combined'));
 app.use(express.json());
 
 // Routes
-app.use('/api', gameRouter);
+buildRoutes(app);
 
 // Start server
 const server = app.listen(config.port, () => {

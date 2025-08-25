@@ -20,3 +20,11 @@ export interface JobRequest {
   id: string;
   actionType: ActionTier;
 }
+
+export interface UserData {
+  id?: string;
+  email: string;
+  name?: string;
+  userName: string;
+  nationId?: string;
+}

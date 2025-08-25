@@ -1,14 +1,17 @@
 import { EventEmitter } from 'events';
 import { GameEngine } from './game-engine';
+import { UserService } from './user-service';
 
 export class TickWorker extends EventEmitter {
   private intervalId?: NodeJS.Timeout;
   private tickNumber = 0;
   private gameEngine: GameEngine;
+  private userService: UserService;
 
   constructor() {
     super();
     this.gameEngine = new GameEngine();
+    this.userService = new UserService();
   }
 
   start() {
@@ -31,6 +34,7 @@ export class TickWorker extends EventEmitter {
 
     try {
       await this.gameEngine.processTick(this.tickNumber);
+      console.log(await this.userService.getAllUsers());
       this.emit('tick', this.tickNumber);
 
       const duration = Date.now() - startTime;
