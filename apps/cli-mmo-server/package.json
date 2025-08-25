@@ -16,7 +16,7 @@
           "format": [
             "cjs"
           ],
-          "bundle": false,
+          "bundle": true,
           "main": "apps/cli-mmo-server/src/main.ts",
           "tsConfig": "apps/cli-mmo-server/tsconfig.app.json",
           "assets": [
@@ -26,7 +26,8 @@
             "sourcemap": true,
             "outExtension": {
               ".js": ".js"
-            }
+            },
+            "external": ["express", "cors", "helmet", "morgan", "dotenv", "crypto"]
           }
         },
         "configurations": {
