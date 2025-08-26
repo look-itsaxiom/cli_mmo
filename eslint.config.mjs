@@ -1,33 +1,37 @@
-import nx from '@nx/eslint-plugin';
+// eslint.config.js
+import { defineConfig } from 'eslint/config';
+import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
+import typescriptEslint from '@typescript-eslint/eslint-plugin';
+import typescriptParser from '@typescript-eslint/parser';
 
-export default [
-  ...nx.configs['flat/base'],
-  ...nx.configs['flat/typescript'],
-  ...nx.configs['flat/javascript'],
+export default defineConfig([
+  // Base ESLint recommended rules
   {
-    ignores: ['**/dist', '**/vite.config.*.timestamp*', '**/vitest.config.*.timestamp*'],
+    extends: ['eslint:recommended'],
   },
+  // TypeScript specific configuration
   {
-    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
+    files: ['**/*.ts', '**/*.tsx'], // Apply only to TypeScript files
+    languageOptions: {
+      parser: typescriptParser,
+      parserOptions: {
+        project: './tsconfig.json', // Or your tsconfig path
+        ecmaVersion: 2022,
+        sourceType: 'module',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': typescriptEslint,
+    },
+    extends: [
+      'plugin:@typescript-eslint/recommended', // Recommended TypeScript rules
+      'plugin:@typescript-eslint/recommended-requiring-type-checking', // Rules that require type information
+    ],
     rules: {
-      '@nx/enforce-module-boundaries': [
-        'error',
-        {
-          enforceBuildableLibDependency: true,
-          allow: ['^.*/eslint(\\.base)?\\.config\\.[cm]?[jt]s$'],
-          depConstraints: [
-            {
-              sourceTag: '*',
-              onlyDependOnLibsWithTags: ['*'],
-            },
-          ],
-        },
-      ],
+      // Add or override specific TypeScript rules here
+      // e.g., "@typescript-eslint/no-unused-vars": "off",
     },
   },
-  {
-    files: ['**/*.ts', '**/*.tsx', '**/*.cts', '**/*.mts', '**/*.js', '**/*.jsx', '**/*.cjs', '**/*.mjs'],
-    // Override or add rules here
-    rules: {},
-  },
-];
+  // Prettier integration (must be last to override formatting rules)
+  eslintPluginPrettierRecommended,
+]);

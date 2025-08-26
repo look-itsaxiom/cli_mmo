@@ -1,0 +1,20 @@
+{
+  "name": "@cli_mmo/types",
+  "version": "1.0.0",
+  "description": "",
+  "outputs": {
+    ".": {
+      "default": "./dist/index.d.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.15.0",
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}
