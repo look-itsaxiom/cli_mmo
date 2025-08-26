@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { JobQueue } from '../services/singletons/job-queue';
-import { JobRequest } from '@cli-mmo/shared';
+import { JobRequest } from '@cli-mmo/types';
 
 const gameRouter = Router();
 

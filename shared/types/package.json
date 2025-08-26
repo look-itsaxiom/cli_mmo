@@ -1,20 +1,24 @@
 {
-  "name": "@cli_mmo/types",
+  "name": "@cli-mmo/types",
   "version": "1.0.0",
-  "description": "",
-  "outputs": {
+  "private": true,
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "exports": {
     ".": {
-      "default": "./dist/index.d.js"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     }
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc -p tsconfig.json",
+    "watch": "tsc -p tsconfig.json -w"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "packageManager": "pnpm@10.15.0",
   "devDependencies": {
     "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@cli-mmo/db": "workspace:*"
   }
 }

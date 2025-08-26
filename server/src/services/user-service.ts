@@ -1,6 +1,5 @@
-import { UserData } from '@cli-mmo/shared';
+import { User, UserData, PrismaClient } from '@cli-mmo/types';
 import { randomUUID } from 'crypto';
-import { User, PrismaClient } from '@cli-mmo/db';
 import { DataService } from './singletons/data-service';
 
 export class UserService {
@@ -15,12 +14,13 @@ export class UserService {
   }
 
   async createUser(userData: UserData): Promise<boolean> {
+    console.log(userData);
     try {
       const user: User = {
         id: (await this.prisma.user.count()) + 1,
         email: userData.email,
         name: userData.name ?? '',
-        createdAt: new Date(Date.UTC(Date.now())),
+        createdAt: new Date(),
         userName: userData.userName ?? '',
         nationId: randomUUID(),
       };

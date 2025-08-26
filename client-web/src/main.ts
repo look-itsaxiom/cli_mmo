@@ -3,7 +3,8 @@ import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebLinksAddon } from '@xterm/addon-web-links';
 import { ClipboardAddon } from '@xterm/addon-clipboard';
-import { WebContainer, WebContainerProcess } from '@webcontainer/api';
+import { WebContainer } from '@webcontainer/api';
+import type { WebContainerProcess } from '@webcontainer/api';
 import { files } from './files';
 
 async function main() {
@@ -32,7 +33,7 @@ async function main() {
     await webcontainerInstance.mount(files);
 
     // Wait for `server-ready` event
-    webcontainerInstance.on('server-ready', async (port, url) => {
+    webcontainerInstance.on('server-ready', async () => {
       console.log('Webcontainer is ready');
     });
 

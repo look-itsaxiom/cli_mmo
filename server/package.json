@@ -1,5 +1,5 @@
 {
-  "name": "@cli_mmo/server",
+  "name": "@cli-mmo/server",
   "version": "1.0.0",
   "license": "MIT",
   "main": "src/index.ts",
@@ -12,6 +12,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@cli-mmo/db": "workspace:*",
+    "@cli-mmo/types": "workspace:*",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "helmet": "^8.1.0",

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { UserService } from '../services/user-service';
-import { UserData } from '@cli-mmo/shared';
+import { UserData } from '@cli-mmo/types';
 
 const userRouter = Router();
 

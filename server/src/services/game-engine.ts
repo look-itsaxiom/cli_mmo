@@ -1,5 +1,5 @@
 import { JobQueue } from './singletons/job-queue';
-import { ActionTier } from '@cli-mmo/shared';
+import { ActionTier } from '@cli-mmo/types';
 
 export class GameEngine {
   //private db: PrismaClient;

@@ -1,14 +1,15 @@
 {
   "compilerOptions": {
-    "module": "es2020",
-    "target": "es2020",
-    "strict": true,
-    "verbatimModuleSyntax": true,
-    "declaration": true,
-    "sourceMap": true,
-    "declarationMap": true,
-    "rootDir": "src",
     "outDir": "dist",
-    "forceConsistentCasingInFileNames": true
-  }
+    "declaration": true,
+    "emitDeclarationOnly": false,
+    "module": "nodenext",
+    "target": "esnext",
+    "moduleResolution": "nodenext",
+    "strict": true,
+    "skipLibCheck": true,
+    "declarationMap": true,
+    "preserveSymlinks": true
+  },
+  "include": ["*.ts", "src/**/*.ts"]
 }

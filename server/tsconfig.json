@@ -1,18 +1,15 @@
 {
   "compilerOptions": {
     "target": "esnext",
-    "module": "commonjs",
+    "module": "nodenext",
     "strict": true,
     "noImplicitAny": true,
     "outDir": "dist",
     "sourceMap": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "moduleResolution": "nodenext"
   },
-  "include": [
-    "./*.js",
-    "src/**/*.ts",
-    "test/**/*.ts"
-  ]
+  "include": ["./*.js", "src/**/*.ts", "test/**/*.ts"]
 }

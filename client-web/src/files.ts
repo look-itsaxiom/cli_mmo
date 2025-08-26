@@ -1,4 +1,4 @@
-import { FileSystemTree } from '@webcontainer/api';
+import type { FileSystemTree } from '@webcontainer/api';
 
 export const files: FileSystemTree = {
   'package.json': {

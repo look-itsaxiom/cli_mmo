@@ -1,4 +1,4 @@
-import { JobRequest } from '@cli-mmo/shared';
+import { JobRequest } from '@cli-mmo/types';
 
 export class JobQueue {
   private static instance: JobQueue;
