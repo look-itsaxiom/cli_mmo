@@ -2,22 +2,8 @@
 # Run this script from the init/ directory to set up your development environment
 
 # ASCII Header
-Write-Ho# Step 6: Build shared packages
-Write-Step 6 "Building shared packages"
-Write-Host "Building database and types packages..." -ForegroundColor White
-pnpm --filter "./shared/*" build
-Assert-Success "Failed to build shared packages"
-Write-Host "✓ Shared packages built successfully" -ForegroundColor Green
-
-# Step 7: Build all packages
-Write-Step 7 "Building all packages"
-Write-Host "Building all project packages..." -ForegroundColor White
-pnpm -r build
-Assert-Success "Failed to build all packages"
-Write-Host "✓ All packages built successfully" -ForegroundColor Green
-
-# Step 8: Verify setup
-Write-Step 8 "Verifying setup" _       _____   __  __  __  __   ____  
+Write-Host @"
+   _____  _       _____   __  __  __  __   ____  
  / ___ / | |     |_   _| |  \/  ||  \/  | / __ \ 
 | |      | |       | |   | |\/| || |\/| || |  | |
 | |      | |       | |   | |  | || |  | || |  | |
@@ -31,6 +17,28 @@ Write-Step 8 "Verifying setup" _       _____   __  __  __  __   ____
 Write-Host "Welcome! This script will set up your CLI MMO development environment." -ForegroundColor Green
 Write-Host "Please ensure you have Node.js and Docker installed before proceeding.`n" -ForegroundColor Yellow
 
+# Check if we're in the CLI MMO project root or init directory
+$currentLocation = Get-Location
+$isInInit = Test-Path "init.ps1" -PathType Leaf
+$isInRoot = Test-Path "pnpm-workspace.yaml" -PathType Leaf
+
+if (-not $isInInit -and -not $isInRoot) {
+    Write-Host "X This script must be run from either the cli_mmo project root or the init/ directory." -ForegroundColor Red
+    Write-Host "  Current location: $currentLocation" -ForegroundColor Yellow
+    Write-Host "  Please navigate to the correct directory and try again." -ForegroundColor Yellow
+    exit 1
+}
+
+if ($isInInit) {
+    Write-Host "OK Running from init directory" -ForegroundColor Green
+    $root = Get-Location
+    $root = $root | Split-Path
+} else {
+    Write-Host "OK Running from project root directory" -ForegroundColor Green
+    $root = Get-Location
+}
+
+
 # Function to check if a command exists
 function Test-CommandExists {
     param($Command)
@@ -41,15 +49,15 @@ function Test-CommandExists {
 # Function to print step headers
 function Write-Step {
     param($StepNumber, $Description)
-    Write-Host "`n[$StepNumber/8] $Description" -ForegroundColor Magenta
-    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkGray
+    Write-Host "`n[$StepNumber/7] $Description" -ForegroundColor Magenta
+    Write-Host "================================================================" -ForegroundColor DarkGray
 }
 
 # Function to check success and exit on failure
 function Assert-Success {
     param($Message)
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "❌ $Message" -ForegroundColor Red
+        Write-Host "X $Message" -ForegroundColor Red
         Write-Host "Setup failed. Please check the error above and try again." -ForegroundColor Red
         exit 1
     }
@@ -59,21 +67,35 @@ function Assert-Success {
 function Set-EnvVariable {
     param($FilePath, $Key, $Value)
     
-    if (Test-Path $FilePath) {
-        $content = Get-Content $FilePath -Raw
-        if ($content -match "^$Key=") {
-            # Update existing key
-            $content = $content -replace "^$Key=.*", "$Key=`"$Value`""
-        } else {
-            # Add new key
-            $content += "`n$Key=`"$Value`""
+    try {
+        # Ensure directory exists
+        $directory = Split-Path $FilePath -Parent
+        if (-not (Test-Path $directory)) {
+            New-Item -ItemType Directory -Path $directory -Force | Out-Null
         }
-    } else {
-        # Create new file
-        $content = "$Key=`"$Value`""
+        
+        if (Test-Path $FilePath) {
+            $content = Get-Content $FilePath -Raw -ErrorAction SilentlyContinue
+            if ($content -and $content -match "^$Key=") {
+                # Update existing key
+                $content = $content -replace "^$Key=.*", "$Key=`"$Value`""
+            } else {
+                # Add new key
+                if ($content) {
+                    $content += "`n$Key=`"$Value`""
+                } else {
+                    $content = "$Key=`"$Value`""
+                }
+            }
+        } else {
+            # Create new file
+            $content = "$Key=`"$Value`""
+        }
+        
+        $content | Set-Content $FilePath -NoNewline
+    } catch {
+        Write-Host "WARNING: Could not update $FilePath" -ForegroundColor Yellow
     }
-    
-    $content | Set-Content $FilePath -NoNewline
 }
 
 # Step 1: Check prerequisites
@@ -81,135 +103,138 @@ Write-Step 1 "Checking prerequisites"
 Write-Host "Checking Node.js..." -NoNewline
 if (Test-CommandExists "node") {
     $nodeVersion = node --version
-    Write-Host " ✓ Found Node.js $nodeVersion" -ForegroundColor Green
+    Write-Host " OK Found Node.js $nodeVersion" -ForegroundColor Green
 } else {
-    Write-Host " ❌ Node.js not found. Please install Node.js from https://nodejs.org/" -ForegroundColor Red
+    Write-Host " X Node.js not found. Please install Node.js from https://nodejs.org/" -ForegroundColor Red
     exit 1
 }
 
 Write-Host "Checking Docker..." -NoNewline
 if (Test-CommandExists "docker") {
-    Write-Host " ✓ Found Docker" -ForegroundColor Green
+    Write-Host " OK Found Docker" -ForegroundColor Green
 } else {
-    Write-Host " ❌ Docker not found. Please install Docker Desktop from https://docker.com/" -ForegroundColor Red
+    Write-Host " X Docker not found. Please install Docker Desktop from https://docker.com/" -ForegroundColor Red
     exit 1
 }
 
 # Step 2: Install pnpm globally
 Write-Step 2 "Installing pnpm package manager"
-Write-Host "Installing pnpm globally..." -NoNewline
-npm install pnpm -g
-Assert-Success "Failed to install pnpm"
-$pnpmVersion = pnpm --version
-Write-Host " ✓ pnpm $pnpmVersion installed successfully" -ForegroundColor Green
+Write-Host "Checking for pnpm..." -NoNewline
+if (Test-CommandExists "pnpm") {
+    $pnpmVersion = pnpm --version
+    Write-Host " OK pnpm $pnpmVersion already installed" -ForegroundColor Green
+} else {
+    Write-Host " Installing pnpm globally..." -ForegroundColor White
+    npm install pnpm -g
+    Assert-Success "Failed to install pnpm"
+    $pnpmVersion = pnpm --version
+    Write-Host "OK pnpm $pnpmVersion installed successfully" -ForegroundColor Green
+}
 
 # Step 3: Install project dependencies
 Write-Step 3 "Installing project dependencies"
 Write-Host "Installing dependencies for all packages..." -ForegroundColor White
+Set-Location $root
 pnpm -r install
 Assert-Success "Failed to install dependencies"
-Write-Host "✓ All dependencies installed successfully" -ForegroundColor Green
+Write-Host "OK All dependencies installed successfully" -ForegroundColor Green
 
-# Step 4: Start Docker Desktop and database
-Write-Step 4 "Starting Docker services"
+# Step 4: Configure environment variables
+Write-Step 4 "Configuring environment variables"
+Set-Location "$root/shared/db"
+Write-Host "Setting up database connection for shared/db..." -ForegroundColor White
+Set-EnvVariable "$root/shared/db/.env" "DATABASE_URL" "postgresql://postgres:prisma@localhost:5432/postgres?schema=public"
+Write-Host "OK Database .env file configured" -ForegroundColor Green
+
+Write-Step 4 "Configuring environment variables"
+Set-Location "$root/server"
+Write-Host "Setting up database connection for server..." -ForegroundColor White
+Set-EnvVariable "$root/server/.env" "NODE_ENV" "development"
+Write-Host "OK Database .env file configured" -ForegroundColor Green
+
+# Step 5: Start Docker Desktop and database
+Write-Step 5 "Starting Docker services"
 Write-Host "Starting Docker Desktop..." -ForegroundColor White
-docker version > $null 2>&1
+docker version 2>$null
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "Starting Docker Desktop (this may take a moment)..." -ForegroundColor Yellow
-    Start-Process "Docker Desktop" -WindowStyle Hidden
+    Write-Host "Docker is not running. Please start Docker Desktop manually." -ForegroundColor Yellow
+    Write-Host "Waiting for Docker to be available..." -ForegroundColor Yellow
     
     # Wait for Docker to be ready
     $attempts = 0
     do {
-        Start-Sleep 3
-        docker version > $null 2>&1
+        Start-Sleep 5
+        docker version 2>$null
         $attempts++
         Write-Host "." -NoNewline -ForegroundColor Yellow
-    } while ($LASTEXITCODE -ne 0 -and $attempts -lt 20)
+    } while ($LASTEXITCODE -ne 0 -and $attempts -lt 12)
     
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "`n❌ Docker Desktop failed to start within 60 seconds" -ForegroundColor Red
+        Write-Host "`nX Docker is not available. Please start Docker Desktop and try again." -ForegroundColor Red
         exit 1
     }
-    Write-Host "`n✓ Docker Desktop is running" -ForegroundColor Green
+    Write-Host "`nOK Docker is now running" -ForegroundColor Green
 } else {
-    Write-Host "✓ Docker Desktop is already running" -ForegroundColor Green
+    Write-Host "OK Docker is already running" -ForegroundColor Green
 }
 
 Write-Host "Starting PostgreSQL database..." -ForegroundColor White
-Set-Location ../shared/db
-docker compose up -d
+
+docker compose -f "$root/shared/db/docker-compose.yml" up -d
 Assert-Success "Failed to start database"
 
 # Wait for database to be healthy
 Write-Host "Waiting for database to be ready..." -NoNewline -ForegroundColor Yellow
 $attempts = 0
 do {
-    Start-Sleep 2
-    $health = docker compose ps --format json | ConvertFrom-Json | Where-Object { $_.Service -eq "postgres_db" } | Select-Object -ExpandProperty Health
+    Start-Sleep 1
+    try {
+        $tcpClient = New-Object System.Net.Sockets.TcpClient
+        $connection = $tcpClient.ConnectAsync("localhost", 5432)
+        $connection.Wait(1000)
+        if ($connection.IsCompleted -and $tcpClient.Connected) {
+            $dbReady = $true
+            $tcpClient.Close()
+        } else {
+            $dbReady = $false
+        }
+    } catch {
+        $dbReady = $false
+    }
     $attempts++
     Write-Host "." -NoNewline -ForegroundColor Yellow
-} while ($health -ne "healthy" -and $attempts -lt 15)
+} while (-not $dbReady -and $attempts -lt 15)
 
-if ($health -eq "healthy") {
-    Write-Host " ✓ Database is healthy and ready" -ForegroundColor Green
+if ($dbReady) {
+    Write-Host " OK Database is ready" -ForegroundColor Green
+    Write-Host " Migrating db with prisma migrate dev"
+    npx prisma migrate dev
 } else {
-    Write-Host " ⚠️  Database may still be starting up" -ForegroundColor Yellow
+    Write-Host " WARNING Database connection timeout" -ForegroundColor Yellow
 }
 
-Set-Location ../../init
-
-# Step 5: Configure environment variables
-Write-Step 5 "Configuring environment variables"
-Write-Host "Setting up database connection for shared/db..." -ForegroundColor White
-Set-EnvVariable "../shared/db/.env" "DATABASE_URL" "postgresql://postgres:prisma@localhost:5432/postgres?schema=public"
-Write-Host "✓ Database .env file configured" -ForegroundColor Green
-
-Write-Host "Setting up database connection for server..." -ForegroundColor White
-Set-EnvVariable "../server/.env" "DATABASE_URL" "postgresql://postgres:prisma@localhost:5432/postgres?schema=public"
-Write-Host "✓ Server .env file configured" -ForegroundColor Green
+Set-Location $root
 
 # Step 6: Build shared packages
 Write-Step 6 "Building shared packages"
 Write-Host "Building database and types packages..." -ForegroundColor White
 pnpm --filter "./shared/*" build
 Assert-Success "Failed to build shared packages"
-Write-Host "✓ Shared packages built successfully" -ForegroundColor Green
-
-# Step 6: Build all packages
-Write-Step 6 "Building all packages"
-Write-Host "Building all project packages..." -ForegroundColor White
-pnpm -r build
-Assert-Success "Failed to build all packages"
-Write-Host "✓ All packages built successfully" -ForegroundColor Green
+Write-Host "OK Shared packages built successfully" -ForegroundColor Green
 
 # Step 7: Verify setup
 Write-Step 7 "Verifying setup"
-Write-Host "Checking if server can start..." -ForegroundColor White
-Set-Location ../server
+Write-Host "Building all projects..." -ForegroundColor White
 
-# Test if server starts successfully (run for 3 seconds then kill)
-$job = Start-Job -ScriptBlock {
-    Set-Location $args[0]
-    pnpm dev
-} -ArgumentList (Get-Location).Path
+Set-Location $root
 
-Start-Sleep 3
-Stop-Job $job -PassThru | Remove-Job
-
-if ($job.State -eq "Running") {
-    Write-Host "✓ Server can start successfully" -ForegroundColor Green
-} else {
-    Write-Host "⚠️  Server may have issues starting - check logs manually" -ForegroundColor Yellow
-}
-
-Set-Location ../init
+pnpm -r build
 
 # Success message
 Write-Host @"
 
-🎉 Setup Complete! 🎉
-═══════════════════════════════════════════════════════════
+                       Setup Complete!
+================================================================
 
 Your CLI MMO development environment is ready!
 
@@ -229,7 +254,4 @@ Useful commands:
 - pnpm -r test           Run all tests
 - pnpm -r typecheck      Type check all packages
 - docker compose -f shared/db/docker-compose.yml logs  View database logs
-
-Happy coding! 🚀
 "@ -ForegroundColor Green
-

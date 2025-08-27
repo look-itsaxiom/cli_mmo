@@ -3,13 +3,14 @@
     "outDir": "dist",
     "declaration": true,
     "emitDeclarationOnly": false,
-    "module": "nodenext",
+    "module": "NodeNext",
     "target": "esnext",
     "moduleResolution": "nodenext",
     "strict": true,
     "skipLibCheck": true,
     "declarationMap": true,
-    "preserveSymlinks": true
+    "preserveSymlinks": true,
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["*.ts", "src/**/*.ts"]
 }

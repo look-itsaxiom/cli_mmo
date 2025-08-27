@@ -17,12 +17,11 @@ export class UserService {
     console.log(userData);
     try {
       const user: User = {
-        id: (await this.prisma.user.count()) + 1,
+        id: randomUUID(),
         email: userData.email,
         name: userData.name ?? '',
         createdAt: new Date(),
         userName: userData.userName ?? '',
-        nationId: randomUUID(),
       };
       await this.prisma.user.create({
         data: user,

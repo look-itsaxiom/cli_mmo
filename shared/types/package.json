@@ -7,15 +7,19 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "pure": "./dist/pure.d.ts",
       "default": "./dist/index.js"
     }
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "watch": "tsc -p tsconfig.json -w"
+    "watch": "tsc -p tsconfig.json -w",
+    "seed:db": "node --import=ts-node ; ts-node ./seed/seed.ts"
   },
   "packageManager": "pnpm@10.15.0",
   "devDependencies": {
+    "@types/node": "^24.3.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   },
   "dependencies": {

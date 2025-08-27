@@ -38,12 +38,12 @@ export interface TerritoryBiome {
   resources: TerritoryResourceRates;
 }
 
-export interface BiomeTemplate {
+export interface IBiomeTemplate {
   type: BiomeType;
   resourceRanges: {
     [K in NaturalResourceType]: [number, number];
   };
-  maxBPRange: [number, number];
+  bpRange: [number, number];
   npcOwnershipRate: number;
 }
 

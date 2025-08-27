@@ -9,13 +9,12 @@ datasource db {
 }
 
 model User {
-  id        String      @id @default(uuid())
+  id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   email     String   @unique
   name      String?
   userName  String
-  nation    Nation @relation(fields: [nationId], references: [id])
-  nationId  String   @unique
+  Nation    Nation?
 }
 
 model Nation {
@@ -24,35 +23,37 @@ model Nation {
   name      String   @unique
   code      String   @unique
   owner     User     @relation(fields: [ownerId], references: [id])
-  ownerId   String
+  ownerId   String   @unique
 }
 
 model NaturalResource {
-  id  String   @id @default(uuid())
-  name  String  @unique
+  id                         String                      @id @default(uuid())
+  name                       String                      @unique
+  BiomeTemplateResourceRange BiomeTemplateResourceRange?
 }
 
 model Biome {
-  id  String  @id @default(uuid())
-  name  String  @unique
+  id            String         @id @default(uuid())
+  name          String         @unique
+  BiomeTemplate BiomeTemplate?
 }
 
 model BiomeTemplateResourceRange {
-  id              String     @id @default(uuid())
-  biomeTemplate   BiomeTemplate    @relation(fields: [biomeTemplateId], references: [id])
-  biomeTemplateId String @unique
-  resourceId      String @unique
-  resource       NaturalResource @relation(fields: [resourceId], references: [id])
-  maxAmount      Int
-  minAmount      Int
+  id              String          @id @default(uuid())
+  biomeTemplate   BiomeTemplate   @relation(fields: [biomeTemplateId], references: [id])
+  biomeTemplateId String          @unique
+  resourceId      String          @unique
+  resource        NaturalResource @relation(fields: [resourceId], references: [id])
+  maxAmount       Int
+  minAmount       Int
 }
 
 model BiomeTemplate {
-  id  String  @id @default(uuid())
-  type  Biome  @relation(fields: [biomeId], references: [id])
-  biomeId  String @unique
-  resourceRanges  BiomeTemplateResourceRange[]
-  maxBPRange  Int
-  minBPRange  Int
-  npcOwnershipRate  Float
+  id               String                       @id @default(uuid())
+  type             Biome                        @relation(fields: [biomeId], references: [id])
+  biomeId          String                       @unique
+  resourceRanges   BiomeTemplateResourceRange[]
+  maxBPRange       Int
+  minBPRange       Int
+  npcOwnershipRate Float
 }

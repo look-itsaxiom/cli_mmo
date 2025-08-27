@@ -16,9 +16,9 @@
     }
   },
   "scripts": {
-    "prisma:generate": "prisma generate",
-    "build": "tsc -p tsconfig.json && prisma generate",
-    "dev:generate": "prisma generate --watch"
+    "prisma:generate": "npx prisma generate",
+    "build": "npx prisma generate && tsc -p tsconfig.json",
+    "dev:generate": "npx prisma generate --watch"
   },
   "packageManager": "pnpm@10.15.0",
   "dependencies": {
