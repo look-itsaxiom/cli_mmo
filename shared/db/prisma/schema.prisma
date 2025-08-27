@@ -9,10 +9,50 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        String      @id @default(uuid())
   createdAt DateTime @default(now())
   email     String   @unique
   name      String?
   userName  String
+  nation    Nation @relation(fields: [nationId], references: [id])
   nationId  String   @unique
+}
+
+model Nation {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  name      String   @unique
+  code      String   @unique
+  owner     User     @relation(fields: [ownerId], references: [id])
+  ownerId   String
+}
+
+model NaturalResource {
+  id  String   @id @default(uuid())
+  name  String  @unique
+}
+
+model Biome {
+  id  String  @id @default(uuid())
+  name  String  @unique
+}
+
+model BiomeTemplateResourceRange {
+  id              String     @id @default(uuid())
+  biomeTemplate   BiomeTemplate    @relation(fields: [biomeTemplateId], references: [id])
+  biomeTemplateId String @unique
+  resourceId      String @unique
+  resource       NaturalResource @relation(fields: [resourceId], references: [id])
+  maxAmount      Int
+  minAmount      Int
+}
+
+model BiomeTemplate {
+  id  String  @id @default(uuid())
+  type  Biome  @relation(fields: [biomeId], references: [id])
+  biomeId  String @unique
+  resourceRanges  BiomeTemplateResourceRange[]
+  maxBPRange  Int
+  minBPRange  Int
+  npcOwnershipRate  Float
 }
