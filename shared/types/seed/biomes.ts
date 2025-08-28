@@ -1,13 +1,16 @@
 import { Biome, BiomeTemplate, BiomeTemplateResourceRange, NaturalResource } from '@cli-mmo/db/types';
 import { BiomeType, NaturalResourceType } from '../src/game';
 
-export const seedBiomeTypes: BiomeType[] = ['forest', 'desert', 'plains', 'mountains', 'desert'];
+export const seedBiomeTypes: BiomeType[] = ['forest', 'desert', 'plains', 'mountains', 'hills', 'wetland', 'wildlands'];
 
 const minBPRange = {
   forest: 2,
   desert: 3,
   plains: 5,
   mountains: 4,
+  hills: 3,
+  wetland: 4,
+  wildlands: 2,
 } as { [key in BiomeType]: number };
 
 const maxBPRange = {
@@ -15,6 +18,9 @@ const maxBPRange = {
   desert: 5,
   plains: 7,
   mountains: 6,
+  hills: 6,
+  wetland: 8,
+  wildlands: 5,
 } as { [key in BiomeType]: number };
 
 const npcOwnershipRate = {
@@ -22,6 +28,9 @@ const npcOwnershipRate = {
   desert: 0.2,
   plains: 0.3,
   mountains: 0.4,
+  hills: 0.25,
+  wetland: 0.15,
+  wildlands: 0.35,
 } as { [key in BiomeType]: number };
 
 export const createBiomeTemplates = (biomes: Biome[]): BiomeTemplate[] => {
@@ -95,17 +104,28 @@ const biomeTemplateResources = {
 
 export const createBiomeTemplateResourceRanges = (
   biomeTemplates: BiomeTemplate[],
-  resources: NaturalResource[]
+  resources: NaturalResource[],
+  biomes: Biome[]
 ): BiomeTemplateResourceRange[] => {
   const resourceRanges: BiomeTemplateResourceRange[] = [];
+
   for (const biomeTemplate of biomeTemplates) {
+    // Find the corresponding biome to get its name
+    const biome = biomes.find((b) => b.id === biomeTemplate.biomeId);
+    if (!biome) continue;
+
+    const biomeName = biome.name as BiomeType;
+
     for (const resource of resources) {
+      const resourceName = resource.name as NaturalResourceType;
+      const resourceData = biomeTemplateResources[biomeName]?.[resourceName];
+
       resourceRanges.push({
         id: `${biomeTemplate.id}-resource-${resource.id}`,
         biomeTemplateId: biomeTemplate.id,
         resourceId: resource.id,
-        minAmount: biomeTemplateResources[resource.name]?.min ?? 0,
-        maxAmount: biomeTemplateResources[resource.name]?.max ?? 3,
+        minAmount: resourceData?.min ?? 0,
+        maxAmount: resourceData?.max ?? 3,
       });
     }
   }

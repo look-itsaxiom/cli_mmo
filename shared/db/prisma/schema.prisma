@@ -27,9 +27,9 @@ model Nation {
 }
 
 model NaturalResource {
-  id                         String                      @id @default(uuid())
-  name                       String                      @unique
-  BiomeTemplateResourceRange BiomeTemplateResourceRange?
+  id                         String                       @id @default(uuid())
+  name                       String                       @unique
+  BiomeTemplateResourceRange BiomeTemplateResourceRange[]
 }
 
 model Biome {
@@ -41,11 +41,13 @@ model Biome {
 model BiomeTemplateResourceRange {
   id              String          @id @default(uuid())
   biomeTemplate   BiomeTemplate   @relation(fields: [biomeTemplateId], references: [id])
-  biomeTemplateId String          @unique
-  resourceId      String          @unique
+  biomeTemplateId String
+  resourceId      String
   resource        NaturalResource @relation(fields: [resourceId], references: [id])
   maxAmount       Int
   minAmount       Int
+
+  @@unique([biomeTemplateId, resourceId])
 }
 
 model BiomeTemplate {

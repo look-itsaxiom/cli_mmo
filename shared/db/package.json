@@ -18,7 +18,8 @@
   "scripts": {
     "prisma:generate": "npx prisma generate",
     "build": "npx prisma generate && tsc -p tsconfig.json",
-    "dev:generate": "npx prisma generate --watch"
+    "dev:generate": "npx prisma generate --watch",
+    "query": "node ./prisma/query.cjs"
   },
   "packageManager": "pnpm@10.15.0",
   "dependencies": {

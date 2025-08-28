@@ -3,29 +3,60 @@ import { seedNaturalResources } from './resources';
 import { createBiomeTemplateResourceRanges, createBiomeTemplates, seedBiomeTypes } from './biomes';
 
 async function main() {
-  await prisma.naturalResource.createMany({
-    data: seedNaturalResources.map((name) => ({ name })),
-  });
+  console.log('🌱 Starting database seed...');
+
+  // Clear existing data to avoid constraint conflicts
+  console.log('🧹 Clearing existing data...');
+  await prisma.biomeTemplateResourceRange.deleteMany();
+  await prisma.biomeTemplate.deleteMany();
+
+  // Create natural resources with upsert to handle duplicates
+  console.log('🌿 Seeding natural resources...');
+  for (const resourceType of seedNaturalResources) {
+    await prisma.naturalResource.upsert({
+      where: { name: resourceType },
+      update: {}, // No updates needed if it exists
+      create: { name: resourceType },
+    });
+  }
 
   const resources = await prisma.naturalResource.findMany();
+  console.log(`✅ Found ${resources.length} natural resources`);
 
-  await prisma.biome.createMany({
-    data: seedBiomeTypes.map((name) => ({ name })),
-  });
+  // Create biomes with upsert to handle duplicates
+  console.log('🏔️ Seeding biomes...');
+  for (const biomeType of seedBiomeTypes) {
+    await prisma.biome.upsert({
+      where: { name: biomeType },
+      update: {}, // No updates needed if it exists
+      create: { name: biomeType },
+    });
+  }
 
   const biomes = await prisma.biome.findMany();
+  console.log(`✅ Found ${biomes.length} biomes`);
 
   const biomeTemplates = createBiomeTemplates(biomes);
 
-  await prisma.biomeTemplate.createMany({
-    data: biomeTemplates,
-  });
+  // Create biome templates
+  console.log('🏗️ Creating biome templates...');
+  for (const template of biomeTemplates) {
+    await prisma.biomeTemplate.create({ data: template });
+  }
+  console.log(`✅ Created ${biomeTemplates.length} biome templates`);
 
-  const biomeTemplateResourceRanges = createBiomeTemplateResourceRanges(biomeTemplates, resources);
+  // Get the created biome templates from database
+  const savedBiomeTemplates = await prisma.biomeTemplate.findMany();
+  const biomeTemplateResourceRanges = createBiomeTemplateResourceRanges(savedBiomeTemplates, resources, biomes);
 
-  await prisma.biomeTemplateResourceRange.createMany({
-    data: biomeTemplateResourceRanges,
-  });
+  // Create biome template resource ranges
+  console.log('⚖️ Creating biome template resource ranges...');
+  for (const range of biomeTemplateResourceRanges) {
+    await prisma.biomeTemplateResourceRange.create({ data: range });
+  }
+  console.log(`✅ Created ${biomeTemplateResourceRanges.length} resource ranges`);
+
+  console.log('🎉 Database seed completed successfully!');
 }
 
 main()

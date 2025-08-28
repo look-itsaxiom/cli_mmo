@@ -15,8 +15,8 @@ export class TerritoryFactory {
 
   constructor(prisma: PrismaClient) {
     this.biomeTemplates = new Map<BiomeType, IBiomeTemplate>();
-    this.initializeBiomeTemplates();
     this.prisma = prisma;
+    this.initializeBiomeTemplates();
   }
 
   public createTerritory(biomeType: BiomeType, location: HexCoordinates): Territory {
@@ -76,13 +76,13 @@ export class TerritoryFactory {
         newTemplate.type = biomeName;
         newTemplate.npcOwnershipRate = template.npcOwnershipRate;
         newTemplate.bpRange = [template.minBPRange, template.maxBPRange];
-        for (const resource of resources) {
-          const resourceRange = await this.prisma.biomeTemplateResourceRange.findUnique({
-            where: { biomeTemplateId: template.id, resourceId: resource.id },
-          });
+        const resourceRanges = await this.prisma.biomeTemplateResourceRange.findMany({
+          where: { biomeTemplateId: template.id },
+        });
+        for (const resourceRange of resourceRanges) {
           newTemplate.resourceRanges = {
             ...newTemplate.resourceRanges,
-            [resourceNameLookup.get(resource.id) as keyof typeof newTemplate.resourceRanges]: [
+            [resourceNameLookup.get(resourceRange.resourceId) as keyof typeof newTemplate.resourceRanges]: [
               resourceRange?.minAmount ?? 0,
               resourceRange?.maxAmount ?? 3,
             ],
