@@ -209,6 +209,10 @@ if ($dbReady) {
     Write-Host " OK Database is ready" -ForegroundColor Green
     Write-Host " Migrating db with prisma migrate dev"
     npx prisma migrate dev
+    Write-Host "OK Database migrated successfully" -ForegroundColor Green
+    Write-Host "Seeding database with initial data"
+    pnpm --filter "./shared/types" seed:db
+    Write-Host "OK Database seeded successfully" -ForegroundColor Green
 } else {
     Write-Host " WARNING Database connection timeout" -ForegroundColor Yellow
 }
