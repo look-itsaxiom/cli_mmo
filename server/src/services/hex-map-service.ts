@@ -10,10 +10,12 @@ export interface HexMapService {
 export class HexMapService implements HexMapService {
   private gameWorld: Map<HexCoordinates, Territory>;
   private prisma: PrismaClient;
+  private territoryFactory: TerritoryFactory;
 
   constructor() {
     this.gameWorld = new Map<HexCoordinates, Territory>();
     this.prisma = DataService.getInstance().getPrismaClient();
+    this.territoryFactory = new TerritoryFactory(this.prisma);
   }
 
   public getTerritory(c: HexCoordinates): Territory | null {
@@ -24,15 +26,14 @@ export class HexMapService implements HexMapService {
     return this.gameWorld;
   }
 
-  public initializeGameWorld() {
-    // Initialize the game world with territories
-    const territoryFactory = new TerritoryFactory(this.prisma);
+  public async initializeGameWorld() {
+    await this.territoryFactory.initializeBiomeTemplates();
 
-    for (let q = -100; q >= 100; q++) {
-      for (let r = -100; r >= 100; r++) {
+    for (let q = 0; q < 100; q++) {
+      for (let r = 0; r < 100; r++) {
         const coordinates = { q, r } as HexCoordinates;
         const biomeType = this.determineBiomeType(coordinates);
-        const territory = territoryFactory.createTerritory(biomeType, coordinates);
+        const territory = this.territoryFactory.createTerritory(biomeType, coordinates);
         coordinates.toString = () => `${coordinates.q},${coordinates.r}`;
         coordinates.toCubic = () => ({ x: coordinates.q, y: -coordinates.q - coordinates.r, z: coordinates.r });
         territory.location = coordinates;

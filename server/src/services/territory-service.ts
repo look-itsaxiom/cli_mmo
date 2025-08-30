@@ -16,13 +16,12 @@ export class TerritoryFactory {
   constructor(prisma: PrismaClient) {
     this.biomeTemplates = new Map<BiomeType, IBiomeTemplate>();
     this.prisma = prisma;
-    this.initializeBiomeTemplates();
   }
 
   public createTerritory(biomeType: BiomeType, location: HexCoordinates): Territory {
     const newTerritory: Territory = {} as Territory;
 
-    const biomeTemplate = this.biomeTemplates.get(biomeType);
+    const biomeTemplate = this.biomeTemplates.get(biomeType as BiomeType);
 
     if (!biomeTemplate) {
       throw new Error(`Biome template not found for type: ${biomeType}`);
@@ -60,7 +59,7 @@ export class TerritoryFactory {
     return resourceRates;
   }
 
-  private async initializeBiomeTemplates() {
+  public async initializeBiomeTemplates() {
     // Initialize biome templates here
     const templates = await this.prisma.biomeTemplate.findMany();
     const biomeTypes = await this.prisma.biome.findMany();

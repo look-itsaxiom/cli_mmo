@@ -19,9 +19,14 @@ gameRouter.post('/job-request', async (req, res) => {
 
 gameRouter.get('/map', async (req, res) => {
   const mapService = new HexMapService();
-  mapService.initializeGameWorld();
+  await mapService.initializeGameWorld();
   const gameMap = mapService.getMap();
-  res.status(200).send(JSON.stringify(gameMap));
+  res.send({
+    map: Array.from(gameMap.entries()).map(([coords, territory]) => ({
+      coordinates: coords,
+      territory,
+    })),
+  });
 });
 
 export default gameRouter;
