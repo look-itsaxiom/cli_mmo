@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { JobQueue } from '../services/singletons/job-queue';
+import { JobQueue } from '../services/singletons/job-service';
 import { JobRequest } from '@cli-mmo/types';
 import { HexMapService } from '../services/hex-map-service';
 

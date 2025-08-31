@@ -1,7 +1,8 @@
 import { prisma } from '@cli-mmo/db/client';
 import { PrismaClient } from '@cli-mmo/types';
+import { SingletonService } from '.';
 
-export class DataService {
+export class DataService implements SingletonService {
   private static instance: DataService;
   private prisma: PrismaClient;
 
@@ -18,5 +19,9 @@ export class DataService {
 
   public getPrismaClient(): PrismaClient {
     return this.prisma;
+  }
+
+  public stop(): void {
+    this.prisma.$disconnect();
   }
 }

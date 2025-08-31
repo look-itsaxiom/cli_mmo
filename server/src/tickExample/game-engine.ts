@@ -1,4 +1,4 @@
-import { JobQueue } from './singletons/job-queue';
+import { JobQueue } from '../services/singletons/job-service';
 import { ActionTier } from '@cli-mmo/types';
 
 export class GameEngine {

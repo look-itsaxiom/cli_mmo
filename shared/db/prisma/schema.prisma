@@ -18,24 +18,76 @@ model User {
 }
 
 model Nation {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  name      String   @unique
-  code      String   @unique
-  owner     User     @relation(fields: [ownerId], references: [id])
-  ownerId   String   @unique
+  id                   String                 @id @default(uuid())
+  createdAt            DateTime               @default(now())
+  name                 String                 @unique
+  code                 String                 @unique
+  owner                User                   @relation(fields: [ownerId], references: [id])
+  ownerId              String                 @unique
+  Territory            Territory[]
+  NationResourceAmount NationResourceAmount[]
+  GameInstance         GameInstance           @relation(fields: [gameInstanceId], references: [id])
+  gameInstanceId       String                 @unique
+}
+
+model NationResourceAmount {
+  nation     Nation          @relation(fields: [nationId], references: [id])
+  nationId   String
+  resource   NaturalResource @relation(fields: [resourceId], references: [id])
+  resourceId String
+  amount     Int
+
+  @@id([nationId, resourceId])
+}
+
+model GameInstance {
+  id        String      @id @default(uuid())
+  Territory Territory[]
+  Nation    Nation?
+}
+
+model Territory {
+  id                      String                    @id @default(uuid())
+  q                       Int
+  r                       Int
+  gameInstance            GameInstance              @relation(fields: [gameInstanceId], references: [id])
+  gameInstanceId          String
+  biome                   Biome                     @relation(fields: [biomeId], references: [id])
+  biomeId                 String
+  TerritoryResourceAmount TerritoryResourceAmount[]
+  claimed                 Boolean
+  claimedBy               Nation                    @relation(fields: [claimantId], references: [id])
+  claimantId              String
+  maxBC                   Int
+  currentBC               Int
+
+  @@unique([q, r, gameInstanceId])
+}
+
+model TerritoryResourceAmount {
+  id          Int             @id @default(autoincrement())
+  territory   Territory       @relation(fields: [territoryId], references: [id])
+  territoryId String
+  resource    NaturalResource @relation(fields: [resourceId], references: [id])
+  resourceId  String
+  amount      Int
+
+  @@unique([territoryId, resourceId])
 }
 
 model NaturalResource {
   id                         String                       @id @default(uuid())
   name                       String                       @unique
   BiomeTemplateResourceRange BiomeTemplateResourceRange[]
+  TerritoryResourceAmount    TerritoryResourceAmount[]
+  NationResourceAmount       NationResourceAmount[]
 }
 
 model Biome {
   id            String         @id @default(uuid())
   name          String         @unique
   BiomeTemplate BiomeTemplate?
+  Territory     Territory[]
 }
 
 model BiomeTemplateResourceRange {

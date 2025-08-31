@@ -1,6 +1,7 @@
 import { JobRequest } from '@cli-mmo/types';
+import { SingletonService } from '.';
 
-export class JobQueue {
+export class JobQueue implements SingletonService {
   private static instance: JobQueue;
   private jobReqQueue: JobRequest[];
 

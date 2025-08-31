@@ -56,6 +56,25 @@ async function main() {
   }
   console.log(`✅ Created ${biomeTemplateResourceRanges.length} resource ranges`);
 
+  // Create dummy nation
+
+  // await prisma.user.create({
+  //   data: {
+  //     email: 'dummy@example.com',
+  //     name: 'Dummy User',
+  //     userName: 'dummyuser',
+  //     id: 'dummy-owner-id',
+  //   },
+  // });
+  // await prisma.nation.create({
+  //   data: {
+  //     name: 'Dummy Nation',
+  //     code: 'DUM',
+  //     ownerId: 'dummy-owner-id',
+  //     gameInstanceId: '1',
+  //   },
+  // });
+
   console.log('🎉 Database seed completed successfully!');
 }
 

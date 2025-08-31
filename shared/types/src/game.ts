@@ -16,7 +16,9 @@ export type RefinedResourceType = 'plank' | 'brick' | 'ingot' | 'meal' | 'crysta
 
 export type TradeResourceType = 'cp' | 'sp' | 'gp' | NaturalResourceType | RefinedResourceType;
 
-export type HexCoordinates = {
+export type Resource = NaturalResourceType | RefinedResourceType | TradeResourceType;
+
+export type THexCoordinates = {
   q: number;
   r: number;
   toString: () => string;
@@ -60,10 +62,10 @@ export interface TerritoryClaim {
   updatedAt: Date;
 }
 
-export interface Territory {
+export interface ITerritory {
   id: string;
   biome: TerritoryBiome;
-  location: HexCoordinates;
+  location: THexCoordinates;
   claimed: boolean;
   claimedBy: NationId | NPCId | null;
   claims: TerritoryClaim[];
@@ -83,6 +85,23 @@ export interface UserData {
   name?: string;
   userName: string;
   nationId?: NationId;
+}
+
+export type NationResourceInventory = {
+  [K in Resource]?: {
+    type: K;
+    amount: number;
+    resourceId: string;
+  };
+};
+
+export interface INation {
+  id?: NationId;
+  name: string;
+  code: string;
+  leader: UserId;
+  territories: ITerritory[];
+  ownedResources: NationResourceInventory;
 }
 
 // Service
