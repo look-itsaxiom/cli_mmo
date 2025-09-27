@@ -77,14 +77,18 @@ export class HexMapService implements HexMapService {
     const flattenedWorld = await this.flattenGameWorld(gameInstanceId);
 
     try {
-      this.prisma.territory.createMany({
-        data: flattenedWorld.map((item) => item.territory),
-      });
-      this.prisma.territoryResourceAmount.createMany({
-        data: flattenedWorld.flatMap((item) => item.resources),
+      // Use transaction to ensure atomicity
+      await this.prisma.$transaction(async (tx) => {
+        await tx.territory.createMany({
+          data: flattenedWorld.map((item) => item.territory),
+        });
+        await tx.territoryResourceAmount.createMany({
+          data: flattenedWorld.flatMap((item) => item.resources),
+        });
       });
     } catch (error) {
       console.error('Error saving game world:', error);
+      throw error; // Re-throw to allow caller to handle
     }
   }
 
@@ -92,18 +96,35 @@ export class HexMapService implements HexMapService {
     const flattenedWorld = await this.flattenGameWorld(gameInstanceId);
 
     try {
-      flattenedWorld.forEach(async (hex) => {
-        await this.prisma.territory.update({
-          where: { id: hex.territory.id },
-          data: hex.territory,
-        });
-        await this.prisma.territoryResourceAmount.updateMany({
-          where: { territoryId: hex.territory.id },
-          data: hex.resources,
-        });
+      // Use a transaction to ensure all updates happen atomically
+      await this.prisma.$transaction(async (tx) => {
+        // Process territories sequentially to avoid concurrency issues
+        for (const hex of flattenedWorld) {
+          await tx.territory.update({
+            where: { id: hex.territory.id },
+            data: hex.territory,
+          });
+          
+          // Update resources for this territory
+          for (const resource of hex.resources) {
+            await tx.territoryResourceAmount.upsert({
+              where: {
+                territoryId_resourceId: {
+                  territoryId: resource.territoryId,
+                  resourceId: resource.resourceId,
+                }
+              },
+              update: {
+                amount: resource.amount,
+              },
+              create: resource,
+            });
+          }
+        }
       });
     } catch (error) {
       console.error('Error updating game world:', error);
+      throw error; // Re-throw to allow caller to handle
     }
   }
 
@@ -120,27 +141,38 @@ export class HexMapService implements HexMapService {
   private async flattenGameWorld(
     gameInstanceId: string
   ): Promise<Array<{ territory: Territory; resources: Array<TerritoryResourceAmount> }>> {
+    // Pre-fetch lookups once to avoid repeated database calls
+    const { biomeIdLookup } = await this.territoryService.createBiomeNameLookups();
+    const { resourceIdLookup } = await this.territoryService.createResourceNameLookup();
+    
     const flattened: Array<{ territory: Territory; resources: Array<TerritoryResourceAmount> }> = [];
+    
+    // Process territories efficiently
     for (const [, territory] of this.gameWorld) {
-      const {
-        flat,
-        flatResources,
-      }: {
-        flat: {
-          id: string;
-          q: number;
-          r: number;
-          gameInstanceId: string;
-          biomeId: string;
-          claimed: boolean;
-          claimantId: string;
-          maxBC: number;
-          currentBC: number;
-        };
-        flatResources: { id: number; territoryId: string; resourceId: string; amount: number }[];
-      } = await this.territoryService.flattenTerritoryData(territory, gameInstanceId);
+      const { biome, location } = territory;
+      const flat: Territory = {
+        id: territory.id,
+        biomeId: biomeIdLookup.get(biome.type) ?? 'Unknown Biome',
+        q: location.q,
+        r: location.r,
+        gameInstanceId: gameInstanceId,
+        maxBC: territory.maxBC,
+        currentBC: territory.currentBC,
+        claimed: territory.claimed,
+        claimantId: territory.claimedBy ?? 'null',
+      };
+      
+      // Generate resources efficiently without extra async calls
+      // Let database handle ID with autoincrement
+      const flatResources: Array<TerritoryResourceAmount> = Object.keys(territory.biome.resources).map((resourceName) => ({
+        territoryId: territory.id,
+        resourceId: resourceIdLookup.get(resourceName) ?? 'Unknown Resource',
+        amount: territory.biome.resources[resourceName as keyof typeof territory.biome.resources] || 0,
+      } as any)); // Casting as any since we're omitting the id field intentionally
+      
       flattened.push({ territory: flat, resources: flatResources });
     }
+    
     return flattened;
   }
 
