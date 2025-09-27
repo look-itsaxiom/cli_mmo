@@ -106,7 +106,7 @@ export class TerritoryService {
     };
     convertedTerritory.location = coordinates;
     convertedTerritory.claimed = territory.claimed;
-    convertedTerritory.claimedBy = territory.claimantId === 'null' ? null : (territory.claimantId as string);
+    convertedTerritory.claimedBy = territory.claimantId?.startsWith('system-nation-') ? null : (territory.claimantId as string);
     convertedTerritory.maxBC = territory.maxBC;
     convertedTerritory.currentBC = territory.currentBC;
     convertedTerritory.claims = [];

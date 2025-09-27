@@ -18,7 +18,11 @@ export class GameStateService extends EventEmitter {
 
   public async createGameWorld(): Promise<void> {
     await this.worldMap.initializeGameWorld();
-    await this.worldMap.saveGameWorld(this.gameInstanceId);
+    
+    // Create a system nation for unclaimed territories
+    const systemNation = await this.nations.createSystemNation(this.gameInstanceId);
+    
+    await this.worldMap.saveGameWorld(this.gameInstanceId, systemNation.id!);
   }
 
   public async loadGameWorld(): Promise<void> {

@@ -46,7 +46,7 @@ export class HexMapService implements HexMapService {
 
   public async mapTick() {
     const gameInstanceId = GameInstanceService.getInstance().getGameInstanceId();
-    this.updateGameWorld(gameInstanceId);
+    await this.updateGameWorld(gameInstanceId);
   }
 
   public getTerritory(c: HexCoordinates): ITerritory | null {
@@ -73,12 +73,12 @@ export class HexMapService implements HexMapService {
     }
   }
 
-  public async saveGameWorld(gameInstanceId: string) {
-    const flattenedWorld = await this.flattenGameWorld(gameInstanceId);
+  public async saveGameWorld(gameInstanceId: string, systemNationId?: string) {
+    const flattenedWorld = await this.flattenGameWorld(gameInstanceId, systemNationId);
 
     try {
       // Use transaction to ensure atomicity
-      await this.prisma.$transaction(async (tx) => {
+      await this.prisma.$transaction(async (tx: any) => {
         await tx.territory.createMany({
           data: flattenedWorld.map((item) => item.territory),
         });
@@ -97,7 +97,7 @@ export class HexMapService implements HexMapService {
 
     try {
       // Use a transaction to ensure all updates happen atomically
-      await this.prisma.$transaction(async (tx) => {
+      await this.prisma.$transaction(async (tx: any) => {
         // Process territories sequentially to avoid concurrency issues
         for (const hex of flattenedWorld) {
           await tx.territory.update({
@@ -139,7 +139,8 @@ export class HexMapService implements HexMapService {
   }
 
   private async flattenGameWorld(
-    gameInstanceId: string
+    gameInstanceId: string,
+    systemNationId?: string
   ): Promise<Array<{ territory: Territory; resources: Array<TerritoryResourceAmount> }>> {
     // Pre-fetch lookups once to avoid repeated database calls
     const { biomeIdLookup } = await this.territoryService.createBiomeNameLookups();
@@ -159,7 +160,8 @@ export class HexMapService implements HexMapService {
         maxBC: territory.maxBC,
         currentBC: territory.currentBC,
         claimed: territory.claimed,
-        claimantId: territory.claimedBy ?? 'null',
+        // Use systemNationId for unclaimed territories, or the actual claimedBy if claimed
+        claimantId: territory.claimedBy || systemNationId || 'system-nation-' + gameInstanceId,
       };
       
       // Generate resources efficiently without extra async calls
