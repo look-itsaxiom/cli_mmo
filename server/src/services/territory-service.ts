@@ -106,7 +106,7 @@ export class TerritoryService {
     };
     convertedTerritory.location = coordinates;
     convertedTerritory.claimed = territory.claimed;
-    convertedTerritory.claimedBy = territory.claimantId === 'null' ? null : (territory.claimantId as string);
+    convertedTerritory.claimedBy = territory.claimantId?.startsWith('system-nation-') ? null : (territory.claimantId as string);
     convertedTerritory.maxBC = territory.maxBC;
     convertedTerritory.currentBC = territory.currentBC;
     convertedTerritory.claims = [];
@@ -147,14 +147,16 @@ export class TerritoryService {
       claimed: territory.claimed,
       claimantId: territory.claimedBy ?? 'null',
     };
-    const flatResources: TerritoryResourceAmount[] = await Promise.all(
-      Object.keys(territory.biome.resources).map(async (resourceName) => ({
-        id: (await this.prisma.territoryResourceAmount.count()) + 1,
-        territoryId: territory.id,
-        resourceId: resourceIdLookup.get(resourceName) ?? 'Unknown Resource',
-        amount: territory.biome.resources[resourceName as keyof typeof territory.biome.resources] || 0,
-      }))
-    );
+    
+    // For creation, let the database handle ID generation with autoincrement
+    // For updating, we'll use upsert with the unique constraint (territoryId, resourceId)
+    const flatResources: TerritoryResourceAmount[] = Object.keys(territory.biome.resources).map((resourceName) => ({
+      // Note: We don't include id here since it's autoincrement - Prisma will handle it
+      territoryId: territory.id,
+      resourceId: resourceIdLookup.get(resourceName) ?? 'Unknown Resource',
+      amount: territory.biome.resources[resourceName as keyof typeof territory.biome.resources] || 0,
+    } as any)); // Casting as any since we're omitting the id field intentionally
+    
     return { flat, flatResources };
   }
 

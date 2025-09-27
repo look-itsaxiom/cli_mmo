@@ -88,4 +88,43 @@ export class NationService {
       ownedResources: {} as NationResourceInventory,
     };
   }
+
+  public async createSystemNation(gameInstanceId: string): Promise<INation> {
+    // First, create a system user if it doesn't exist
+    const systemUser = await this.prisma.user.upsert({
+      where: { email: 'system@cli-mmo.internal' },
+      update: {},
+      create: {
+        id: 'system-user',
+        email: 'system@cli-mmo.internal',
+        name: 'System',
+        userName: 'system',
+      },
+    });
+
+    // Then create the system nation for unclaimed territories
+    const systemNation = await this.prisma.nation.upsert({
+      where: { 
+        // Use gameInstanceId as the unique constraint since each instance should have one system nation
+        gameInstanceId: gameInstanceId 
+      },
+      update: {},
+      create: {
+        id: 'system-nation-' + gameInstanceId,
+        name: 'Unclaimed Territories',
+        code: 'UNCL',
+        ownerId: systemUser.id,
+        gameInstanceId: gameInstanceId,
+      },
+    });
+
+    return {
+      id: systemNation.id,
+      name: systemNation.name,
+      code: systemNation.code,
+      leader: systemNation.ownerId,
+      territories: [],
+      ownedResources: {} as NationResourceInventory,
+    };
+  }
 }
