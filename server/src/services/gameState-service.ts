@@ -30,7 +30,7 @@ export class GameStateService extends EventEmitter {
     console.log(`Starting game instance: ${this.gameInstanceId}`);
     // Initialize game state and start game loop
     this.registerListeners();
-    this.intervalId = setInterval(() => this.gameLoop(), 30000); // 30 seconds per tick to start out
+    this.intervalId = setInterval(() => this.gameLoop(), 5000); // 30 seconds per tick to start out
   }
 
   public stop(): void {
@@ -43,6 +43,7 @@ export class GameStateService extends EventEmitter {
   private registerListeners(): void {
     this.on('tick', this.logTick.bind(this));
     this.on('tick', this.nations.nationTick.bind(this.nations));
+    this.on('tick', this.worldMap.mapTick.bind(this.worldMap));
   }
 
   private logTick(tickNumber: number): void {

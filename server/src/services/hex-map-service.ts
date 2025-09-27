@@ -8,6 +8,7 @@ import {
 } from '@cli-mmo/types';
 import { DataService } from './singletons/data-service';
 import { TerritoryService } from './territory-service';
+import { GameInstanceService } from './singletons/gameInstance-service';
 
 export interface HexMapService {
   getTerritory(c: THexCoordinates): ITerritory | null;
@@ -41,6 +42,11 @@ export class HexMapService implements HexMapService {
     this.gameWorld = new Map<HexCoordinates, ITerritory>();
     this.prisma = DataService.getInstance().getPrismaClient();
     this.territoryService = new TerritoryService(this.prisma);
+  }
+
+  public async mapTick() {
+    const gameInstanceId = GameInstanceService.getInstance().getGameInstanceId();
+    this.updateGameWorld(gameInstanceId);
   }
 
   public getTerritory(c: HexCoordinates): ITerritory | null {
@@ -82,6 +88,25 @@ export class HexMapService implements HexMapService {
     }
   }
 
+  public async updateGameWorld(gameInstanceId: string) {
+    const flattenedWorld = await this.flattenGameWorld(gameInstanceId);
+
+    try {
+      flattenedWorld.forEach(async (hex) => {
+        await this.prisma.territory.update({
+          where: { id: hex.territory.id },
+          data: hex.territory,
+        });
+        await this.prisma.territoryResourceAmount.updateMany({
+          where: { territoryId: hex.territory.id },
+          data: hex.resources,
+        });
+      });
+    } catch (error) {
+      console.error('Error updating game world:', error);
+    }
+  }
+
   public async loadGameWorld(gameInstanceId: string) {
     const territories = await this.prisma.territory.findMany({
       where: { gameInstanceId: gameInstanceId },
@@ -96,7 +121,7 @@ export class HexMapService implements HexMapService {
     gameInstanceId: string
   ): Promise<Array<{ territory: Territory; resources: Array<TerritoryResourceAmount> }>> {
     const flattened: Array<{ territory: Territory; resources: Array<TerritoryResourceAmount> }> = [];
-    this.gameWorld.forEach(async (territory) => {
+    for (const [, territory] of this.gameWorld) {
       const {
         flat,
         flatResources,
@@ -115,7 +140,7 @@ export class HexMapService implements HexMapService {
         flatResources: { id: number; territoryId: string; resourceId: string; amount: number }[];
       } = await this.territoryService.flattenTerritoryData(territory, gameInstanceId);
       flattened.push({ territory: flat, resources: flatResources });
-    });
+    }
     return flattened;
   }
 

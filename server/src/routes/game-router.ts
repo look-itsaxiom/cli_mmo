@@ -19,7 +19,9 @@ gameRouter.post('/job-request', async (req, res) => {
 
 gameRouter.get('/map', async (req, res) => {
   const mapService = new HexMapService();
-  await mapService.initializeGameWorld();
+  if (mapService.getMap().size === 0) {
+    await mapService.initializeGameWorld();
+  }
   const gameMap = mapService.getMap();
   res.send({
     map: Array.from(gameMap.entries()).map(([coords, territory]) => ({

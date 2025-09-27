@@ -13,6 +13,7 @@ export class NationService {
     this.territoryService = new TerritoryService(this.prisma);
   }
 
+  // refactor this to be event driven, the nation service should broadcast and every nation should update themselves as a result
   public async nationTick() {
     for (const nation of this.nations.values()) {
       for (const territory of nation.territories) {
